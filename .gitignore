@@ -1,0 +1,29 @@
+# Build outputs
+*.o
+*.bin
+*.iso
+*.img
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*~
+.vscode/
+.idea/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Debug files
+*.debug
+*.log
+
+# Project specific
+disk.img
+filesystem.img 
