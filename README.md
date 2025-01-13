@@ -9,6 +9,6 @@ To compile icaOS2, you will need to have the following tools installed on your s
 ### For Ubuntu:
 You can install the necessary tools by running:
 ```bash
-sudo apt-get install nasm gcc ld grub-mkrescue mtools xorriso
+sudo apt-get install nasm gcc ld grub-mkrescue mtools xorriso grub-pc-bin grub-common make
 ```
 
