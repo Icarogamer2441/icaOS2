@@ -12,9 +12,3 @@ You can install the necessary tools by running:
 sudo apt-get install nasm gcc ld grub-mkrescue mtools xorriso
 ```
 
-### For Arch Linux:
-You can install the necessary tools by running:
-```bash
-sudo pacman -S nasm gcc ld grub-mkrescue mtools xorriso
-```
-
