@@ -18,7 +18,7 @@ static char scancode_to_ascii_shift[] = {
     '*', 0, ' '
 };
 
-static int shift_pressed = 0;
+int shift_pressed = 0;
 
 char get_key() {
     char c = 0;
@@ -28,7 +28,7 @@ char get_key() {
         
         // Verifica se é uma tecla ICA
         if(scancode == SCANCODE_ICAKEY || scancode == SCANCODE_ICAKEY_RIGHT) {
-            return '\x1C';  // Código especial para a tecla ICA
+            return KEY_ICA;  // Retorna o novo código
         }
         
         // Verifica se são as setas
@@ -37,6 +37,12 @@ char get_key() {
         }
         if(scancode == SCANCODE_DOWN) {
             return KEY_DOWN;
+        }
+        if(scancode == SCANCODE_LEFT) {
+            return KEY_LEFT;
+        }
+        if(scancode == SCANCODE_RIGHT) {
+            return KEY_RIGHT;
         }
         
         // Verifica se é uma tecla Shift

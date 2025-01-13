@@ -6,7 +6,7 @@
 #define EDITOR_MAX_LINES 100
 #define EDITOR_MAX_LINE_LENGTH 80
 #define EDITOR_KEY_ESC 27
-#define EDITOR_KEY_ICA 0x1C
+#define EDITOR_KEY_ICA KEY_ICA
 
 typedef struct {
     char* content;

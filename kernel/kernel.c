@@ -7,12 +7,14 @@
 #include "../lib/memory.h"
 #include "../editor/editor.h"
 #include "../compiler/compiler.h"
+#include "../ui/ui.h"
 
 #define COMMAND_BUFFER_SIZE 256
 
 static char cmd_output_buffer[4096];
 static int cmd_output_pos = 0;
 static void (*original_print_char)(char);
+static int ui_mode_active = 0;
 
 static void buffer_print_char(char c) {
     if (cmd_output_pos < (int)sizeof(cmd_output_buffer) - 1) {
@@ -49,6 +51,8 @@ void execute_command(char* command) {
         print_string("  helpicl                           - ICA programming language help\n");
         print_string("  help2                             - Show detailed command help\n");
         print_string("  filecmd <cmd> [args....] > <file> - Run command and save output to file\n");
+        print_string("  uimode                            - Enter graphical user interface\n");
+        print_string("  uihelp                            - Show UI usage instructions\n");
         print_string("\nType 'help2' for detailed help and examples.\n");
     }
     else if (strcmp(command, "clear") == 0) {
@@ -270,34 +274,24 @@ void execute_command(char* command) {
         }
     }
     else if (strcmp(command, "helpicl") == 0) {
-        print_string("ICA Language (ICL) Help:\n");
-        print_string("======================\n\n");
-        
-        print_string("1. Printing:\n");
-        print_string("   print \"Your text here\"    - Print text\n");
-        print_string("   newline                  - Print a line break\n\n");
-        
-        print_string("2. Variables:\n");
-        print_string("   var name = \"John\"        - Create string variable\n");
-        print_string("   var age = 25            - Create number variable\n");
-        print_string("   printvar name           - Print variable value\n\n");
-        
-        print_string("Example Program:\n");
-        print_string("---------------\n");
-        print_string("print \"What's your name? \"\n");
-        print_string("var name = \"John\"\n");
-        print_string("print \"Hello, \"\n");
-        print_string("printvar name\n");
-        print_string("newline\n");
-        print_string("var age = 25\n");
-        print_string("print \"Age: \"\n");
-        print_string("printvar age\n\n");
-        
-        print_string("How to Run:\n");
-        print_string("-----------\n");
-        print_string("1. Create a file:     mkfile program.icl\n");
-        print_string("2. Edit the file:     editmode program.icl\n");
-        print_string("3. Run the program:   run program.icl\n");
+        print_string("ICA Programming Language Help:\n");
+        print_string("  var <name>                        - Declare variable\n");
+        print_string("  var <name> = <value>              - Declare and initialize variable\n");
+        print_string("  print \"text\"                      - Print text\n");
+        print_string("  printvar <var>                    - Print variable value\n");
+        print_string("  input \"prompt\" > <var>            - Read input (auto-detects type)\n");
+        print_string("  newline                           - Print new line\n");
+        print_string("\nExample:\n");
+        print_string("  var name\n");
+        print_string("  var age\n");
+        print_string("  input \"What's your name? \" > name\n");
+        print_string("  input \"How old are you? \" > age\n");
+        print_string("  print \"Hello, \"\n");
+        print_string("  printvar name\n");
+        print_string("  print \"! You are \"\n");
+        print_string("  printvar age\n");
+        print_string("  print \" years old!\"\n");
+        print_string("  newline\n");
     }
     else if (strcmp(command, "filecmd") == 0 && args) {
         // Extrai o comando e o nome do arquivo
@@ -426,9 +420,58 @@ void execute_command(char* command) {
         print_string("  - Content is auto-saved when choosing save\n");
         print_string("  - Exit without save discards changes\n\n");
     }
+    else if (strcmp(command, "uihelp") == 0) {
+        print_string("icaOS2 UI Help:\n");
+        print_string("=============\n\n");
+        
+        print_string("General Controls:\n");
+        print_string("  - Arrow keys: Move mouse cursor\n");
+        print_string("  - Shift+Enter: Left click\n");
+        print_string("  - Shift+Backspace: Right click\n");
+        print_string("  - ICA key (Windows): Special actions\n");
+        print_string("  - Q: Exit UI mode\n\n");
+        
+        print_string("Terminal Window:\n");
+        print_string("  - ICA: Close terminal window\n");
+        print_string("  - Shift+W/S: Scroll terminal\n");
+        print_string("  - Normal typing for commands\n");
+        print_string("  - From system terminal: ICA+Q to return to UI\n\n");
+        
+        print_string("Text Editor:\n");
+        print_string("  - ICA: Save and exit\n");
+        print_string("  - Shift+E: Exit without saving\n");
+        print_string("  - Normal typing to edit\n");
+        print_string("  - Backspace to delete\n\n");
+        
+        print_string("File Manager (ICA Files):\n");
+        print_string("  - Arrow keys: Navigate files/folders\n");
+        print_string("  - Enter: Open file/folder\n");
+        print_string("  - N: New file\n");
+        print_string("  - M: New directory\n");
+        print_string("  - D: Delete selected item\n");
+        print_string("  - B: Go back to parent directory\n");
+        print_string("  - S: Save filesystem\n");
+        print_string("  - L: Load filesystem\n");
+        print_string("  - Q: Close file manager\n\n");
+        
+        print_string("Start Menu:\n");
+        print_string("  - Click [Start] or move to it and press Shift+Enter\n");
+        print_string("  - Select Terminal, ICA Files, or Info\n");
+        print_string("  - Click anywhere else to close menu\n");
+    }
+    else if (strcmp(command, "uimode") == 0) {
+        ui_mode_active = 1;  // Marca que o modo UI está ativo
+        ui_init();
+        ui_main_loop();
+        ui_cleanup();
+    }
     else {
         print_string("Unknown command. Type 'help' for available commands.\n");
     }
+}
+
+int is_ui_mode_active(void) {
+    return ui_mode_active;
 }
 
 void kernel_main() {
@@ -449,6 +492,18 @@ void kernel_main() {
         while(1) {
             char input = get_key();
             if (input != 0) {
+                // Verifica a combinação ICA+Q para retornar à UI
+                if (input == KEY_ICA) {
+                    char next = get_key();
+                    if (next == 'q' || next == 'Q') {
+                        if (ui_mode_active) {
+                            execute_command("uimode");
+                            break;
+                        }
+                    }
+                    continue;
+                }
+                
                 if (input == KEY_UP) {
                     scroll_up();
                     continue;

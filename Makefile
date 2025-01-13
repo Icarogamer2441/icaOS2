@@ -19,7 +19,8 @@ OBJECTS=boot/boot.o \
         lib/string.o \
         lib/memory.o \
         compiler/compiler.o \
-        editor/editor.o
+        editor/editor.o \
+        ui/ui.o
 KERNEL_BIN=kernel.bin
 
 # Diretórios

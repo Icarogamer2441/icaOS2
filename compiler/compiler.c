@@ -6,6 +6,7 @@
 #include "../lib/ctype.h"
 
 #define MAX_VARS 100
+#define MAX_INPUT_SIZE 256
 
 typedef struct {
     char name[32];
@@ -18,24 +19,6 @@ typedef struct {
 
 static Variable variables[MAX_VARS];
 static int var_count = 0;
-
-// Função auxiliar para converter string para inteiro
-static int atoi(const char* str) {
-    int result = 0;
-    int sign = 1;
-    
-    if (*str == '-') {
-        sign = -1;
-        str++;
-    }
-    
-    while (isdigit(*str)) {
-        result = result * 10 + (*str - '0');
-        str++;
-    }
-    
-    return sign * result;
-}
 
 // Função para encontrar uma variável pelo nome
 static Variable* find_variable(const char* name) {
@@ -65,6 +48,48 @@ static void set_variable(const char* name, const char* value, int is_number) {
             strcpy(var->str_value, value);
         }
     }
+}
+
+// Adicione função para limpar variáveis
+static void clear_variables() {
+    for (int i = 0; i < var_count; i++) {
+        if (variables[i].type == VAR_STRING && variables[i].str_value) {
+            free(variables[i].str_value);
+            variables[i].str_value = NULL;  // Evita double-free
+        }
+    }
+    var_count = 0;
+    memset(variables, 0, sizeof(variables));  // Limpa completamente o array
+}
+
+// Modifique read_user_input para ter duas versões
+static char* read_user_input_str() {
+    static char input_buffer[MAX_INPUT_SIZE];
+    int pos = 0;
+    
+    while (1) {
+        char c = get_key();
+        if (c != 0) {  // Verifica se uma tecla foi realmente pressionada
+            if (c == '\n') {
+                input_buffer[pos] = '\0';
+                print_char('\n');
+                break;
+            } else if (c == '\b' || c == 127) {  // Backspace ou Delete
+                if (pos > 0) {
+                    pos--;
+                    // Move o cursor para trás e apaga o caractere anterior
+                    cursor_x--;  // Move o cursor para trás
+                    print_char(' ');  // Apaga o caractere
+                    cursor_x--;  // Move o cursor de volta
+                    set_cursor(cursor_x, cursor_y);  // Atualiza a posição do cursor
+                }
+            } else if (c >= ' ' && pos < MAX_INPUT_SIZE - 1) {
+                input_buffer[pos++] = c;
+                print_char(c);
+            }
+        }
+    }
+    return input_buffer;
 }
 
 // Interpreta uma linha do programa
@@ -160,6 +185,69 @@ static void interpret_line(const char* line) {
         }
         return;
     }
+    
+    // Comando input (para strings)
+    if (strncmp(line, "input", 5) == 0 && (!isalnum(line[5]))) {
+        line += 5;
+        while (*line == ' ' || *line == '\t') line++;
+        
+        // Verifica se tem mensagem de prompt
+        if (*line == '"') {
+            line++; // Pula a primeira aspas
+            const char* end = strchr(line, '"');
+            if (end) {
+                int len = end - line;
+                char buffer[256];
+                strncpy(buffer, line, len);
+                buffer[len] = '\0';
+                print_string(buffer);
+            }
+            line = end + 1;
+        }
+        
+        // Lê o input do usuário
+        char* user_input = read_user_input_str();
+        
+        // Verifica se tem variável para armazenar
+        while (*line == ' ' || *line == '\t') line++;
+        if (*line == '>') {
+            line++;
+            while (*line == ' ' || *line == '\t') line++;
+            
+            // Pega o nome da variável
+            const char* var_start = line;
+            while (isalnum(*line)) line++;
+            int var_len = line - var_start;
+            
+            if (var_len > 0) {
+                char var_name[32];
+                strncpy(var_name, var_start, var_len);
+                var_name[var_len] = '\0';
+                
+                // Verifica se é número ou string
+                char* p = user_input;
+                int is_number = 1;
+                
+                // Pula espaços iniciais
+                while (*p == ' ') p++;
+                
+                // Verifica sinal
+                if (*p == '-' || *p == '+') p++;
+                
+                // Verifica se tem apenas dígitos
+                if (*p == '\0') is_number = 0;  // String vazia
+                while (*p && is_number) {
+                    if (*p < '0' || *p > '9') {
+                        is_number = 0;
+                    }
+                    p++;
+                }
+                
+                set_variable(var_name, user_input, is_number);
+            }
+        }
+        return;
+    }
 }
 
 // Função principal que interpreta o arquivo
@@ -170,23 +258,33 @@ int run_program(const char* program_file) {
         return -1;
     }
     
-    var_count = 0; // Reset variables
+    // Faz uma cópia do código fonte para não modificar o original
+    char* program = malloc(strlen(source) + 1);
+    strcpy(program, source);
+    
+    // Limpa variáveis antes de executar
+    clear_variables();
     
     // Interpreta linha por linha
-    char* line = source;
+    char* line = program;
     char* next_line;
     
     while (line && *line) {
         // Encontra o fim da linha
         next_line = strchr(line, '\n');
         if (next_line) {
-            *next_line = '\0';
-            next_line++;
+            *next_line = '\0';  // Temporariamente marca o fim da linha
+            next_line++;        // Avança para a próxima linha
         }
         
         interpret_line(line);
+        
         line = next_line;
     }
+    
+    // Libera a memória
+    free(program);  // Libera a cópia do programa
+    free(source);   // Libera o código fonte original
     
     return 0;
 }
