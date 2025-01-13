@@ -29,26 +29,26 @@ void execute_command(char* command) {
 
     if (strcmp(command, "help") == 0) {
         print_string("Available commands:\n");
-        print_string("  clear              - Clear screen\n");
-        print_string("  ls/list            - List files and directories\n");
-        print_string("  cd <dir>           - Change directory\n");
-        print_string("  mkdir <dir>        - Create directory\n");
-        print_string("  mkfile <file>      - Create file\n");
-        print_string("  rmdir <dir>        - Remove empty directory\n");
-        print_string("  rmdirf <dir>       - Force remove directory and contents\n");
-        print_string("  rmfile <file>      - Remove file\n");
-        print_string("  write <file> <txt> - Write text to file\n");
-        print_string("  read <file>        - Read file content\n");
-        print_string("  save               - Save filesystem to disk\n");
-        print_string("  load               - Load filesystem from disk\n");
-        print_string("  pwd                - Print working directory\n");
-        print_string("  reboot             - Restart the system\n");
-        print_string("  shutdown           - Power off the system\n");
-        print_string("  editmode <file>    - Edit file in multiline mode\n");
-        print_string("  run <file.icl>     - Run ICA program\n");
-        print_string("  helpicl            - ICA programming language help\n");
-        print_string("  help2              - Show detailed command help\n");
-        print_string("  filecmd            - Run command and save output to file\n");
+        print_string("  clear                             - Clear screen\n");
+        print_string("  ls/list                           - List files and directories\n");
+        print_string("  cd <dir>                          - Change directory\n");
+        print_string("  mkdir <dir>                       - Create directory\n");
+        print_string("  mkfile <file>                     - Create file\n");
+        print_string("  rmdir <dir>                       - Remove empty directory\n");
+        print_string("  rmdirf <dir>                      - Force remove directory and contents\n");
+        print_string("  rmfile <file>                     - Remove file\n");
+        print_string("  write <file> <txt>                - Write text to file\n");
+        print_string("  read <file>                       - Read file content\n");
+        print_string("  save                              - Save filesystem to disk\n");
+        print_string("  load                              - Load filesystem from disk\n");
+        print_string("  pwd                               - Print working directory\n");
+        print_string("  reboot                            - Restart the system\n");
+        print_string("  shutdown                          - Power off the system\n");
+        print_string("  editmode <file>                   - Edit file in multiline mode\n");
+        print_string("  run <file.icl>                    - Run ICA program\n");
+        print_string("  helpicl                           - ICA programming language help\n");
+        print_string("  help2                             - Show detailed command help\n");
+        print_string("  filecmd <cmd> [args....] > <file> - Run command and save output to file\n");
         print_string("\nType 'help2' for detailed help and examples.\n");
     }
     else if (strcmp(command, "clear") == 0) {
